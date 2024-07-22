@@ -110,7 +110,6 @@
                 </button>
             </div>
         @endif
-
         <div class="page-inner">
             <div class="row">
                 <div class="card">

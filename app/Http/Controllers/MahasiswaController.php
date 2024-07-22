@@ -164,8 +164,12 @@ class MahasiswaController extends Controller
         $ijazahPath = Mahasiswa::query()->where('id', '=', $id)->get(['ijazahMahasiswa'])->first();
 
         if (!empty($ijazahPath->ijazahMahasiswa)){
-            $path = storage_path('app/public/'.$ijazahPath->ijazahMahasiswa);
-            return response()->download($path);
+            try {
+                $path = storage_path('app/public/'.$ijazahPath->ijazahMahasiswa);
+                return response()->download($path);
+            }catch (\Exception $e){
+                return redirect()->back()->with("error", "Terjadi kesalahan");
+            }
         }else{
             return redirect()->back()->with("error", "Mahasiswa belum upload ijazah");
         }
