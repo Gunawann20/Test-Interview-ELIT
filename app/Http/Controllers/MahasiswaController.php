@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\mahasiswaExport;
+use App\Pekerjaan;
 use Illuminate\Http\Request;
 use App\Mahasiswa;
+use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MahasiswaController extends Controller
 {
@@ -12,9 +16,20 @@ class MahasiswaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request):View
     {
-        $mahasiswas = Mahasiswa::orderBy('id','asc')->paginate(5);
+        $query = $request->input('query');
+        if ($query){
+            $mahasiswas = Mahasiswa::orderBy('id','asc')
+                ->where('namaMahasiswa', 'like', '%'.$query.'%')
+                ->orWhere('nimMahasiswa', 'like', '%'.$query.'%')
+                ->orWhere('angkatanMahasiswa', 'like', '%'.$query.'%')
+                ->orWhere('judulskripsiMahasiswa', 'like', '%'.$query.'%')
+                ->paginate(8);
+            return view('mahasiswa.index',compact('mahasiswas', 'query'))
+                ->with('i',(request()->input('page',1) -1)*5);
+        }
+        $mahasiswas = Mahasiswa::orderBy('id','asc')->paginate(8);
         return view('mahasiswa.index',compact('mahasiswas'))
                 ->with('i',(request()->input('page',1) -1)*5);
     }
@@ -37,18 +52,26 @@ class MahasiswaController extends Controller
      */
     public function store(Request $request)
     {
-
         $request->validate([
             'namaMahasiswa'=>'required',
-            'nimMahasiswa' => 'required',
+            'nimMahasiswa' => 'required|max:10',
             'angkatanMahasiswa'=>'required',
             'judulskripsiMahasiswa' => 'required',
             'pembimbing1'=>'required',
             'pembimbing2' => 'required',
-            //'gambarMahasiswa' => 'required|image|mimes:jpg,png,jpeg'
+            'gambarMahasiswa' => 'required|image|mimes:jpg,png,jpeg|max:2048',
+            'ijazahMahasiswa' => 'required|file|mimes:pdf|max:5120'
         ]);
- 
-        Mahasiswa::create($request->all());
+
+        $mahasiswa = Mahasiswa::create($request->except(['gambarMahasiswa', 'ijazahMahasiswa']));
+        $gambarPath = $request->file('gambarMahasiswa')->storeAs('gambarMahasiswa', $mahasiswa->id . '.' . $request->file('gambarMahasiswa')->getClientOriginalExtension(), 'public');
+        $ijazahPath = $request->file('ijazahMahasiswa')->storeAs('ijazahMahasiswa', $mahasiswa->id . '.' . $request->file('ijazahMahasiswa')->getClientOriginalExtension(), 'public');
+
+        $mahasiswa->update([
+            'gambarMahasiswa' => $gambarPath,
+            'ijazahMahasiswa' => $ijazahPath
+        ]);
+
         return redirect()->route('mahasiswa.index')
                          ->with('success','Data berhasil ditambahkan');
     }
@@ -88,12 +111,11 @@ class MahasiswaController extends Controller
     {
         $request->validate([
             'namaMahasiswa'=>'required',
-            'nimMahasiswa' => 'required',
+            'nimMahasiswa' => 'required|max:10',
             'angkatanMahasiswa'=>'required',
             'judulskripsiMahasiswa' => 'required',
             'pembimbing1'=>'required',
             'pembimbing2' => 'required',
-            //'gambarMahasiswa' => 'required|image|mimes:jpg,png,jpeg'
         ]);
         $mahasiswa = Mahasiswa::find($id);
         $mahasiswa->namaMahasiswa = $request->get('namaMahasiswa');
@@ -119,5 +141,33 @@ class MahasiswaController extends Controller
         $mahasiswa->delete();
         return redirect()->route('mahasiswa.index')
                          ->with('success', 'Data Alumni berhasil dihapus');
+    }
+
+    public function addJobs($id)
+    {
+        $mahasiswa = Mahasiswa::query()->find($id);
+        $job = Pekerjaan::query()->where('mahasiswa_id', '=', $id)->first();
+        if ($job == null){
+            return view('pekerjaan.create', compact('mahasiswa'));
+        }else{
+            return redirect()->route('pekerjaan.show', $job->id);
+        }
+    }
+
+    public function export_excel()
+    {
+        return Excel::download(new mahasiswaExport(), 'data_mahasiswa.xlsx');
+    }
+
+    public function download_pdf(Request $request, int $id)
+    {
+        $ijazahPath = Mahasiswa::query()->where('id', '=', $id)->get(['ijazahMahasiswa'])->first();
+
+        if (!empty($ijazahPath->ijazahMahasiswa)){
+            $path = storage_path('app/public/'.$ijazahPath->ijazahMahasiswa);
+            return response()->download($path);
+        }else{
+            return redirect()->back()->with("error", "Mahasiswa belum upload ijazah");
+        }
     }
 }

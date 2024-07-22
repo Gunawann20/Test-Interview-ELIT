@@ -1,67 +1,212 @@
-@extends('layouts.app')
+@extends('layouts.template')
 @section('content')
- 
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Data Alumni</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    </head>
-    <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-10">
-                <h3> Daftar Alumni ILMU KOMPUTER UNMUL</h3>
+    <div class="main-header">
+        <div class="main-header-logo">
+            <!-- Logo Header -->
+            <div class="logo-header" data-background-color="dark">
+                <a href="/" class="logo">
+                    <img
+                        src="img/logo-elit.png"
+                        alt="navbar brand"
+                        class="navbar-brand"
+                        height="20"
+                    />
+                </a>
+                <div class="nav-toggle">
+                    <button class="btn btn-toggle toggle-sidebar">
+                        <i class="gg-menu-right"></i>
+                    </button>
+                    <button class="btn btn-toggle sidenav-toggler">
+                        <i class="gg-menu-left"></i>
+                    </button>
+                </div>
+                <button class="topbar-toggler more">
+                    <i class="gg-more-vertical-alt"></i>
+                </button>
             </div>
-            <div class="col-sm-2">
-                <a class="btn btn-success" href="{{ route('mahasiswa.create')}}"> Tambah Alumni </a>
-            </div>
-        </div> 
-        <br>
+            <!-- End Logo Header -->
+        </div>
+        <!-- Navbar Header -->
+        <nav
+            class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom"
+        >
+            <div class="container-fluid">
+                <nav
+                    class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex"
+                >
+                    <div>
+                        <h3 class="fw-bold mb-3">Daftar Alumni ILMU KOMPUTER UNMUL</h3>
+                    </div>
+                </nav>
 
-    @if ($message = Session::get('success'))
-        <div class="alert alert-success">
-            <p>{{$message}}</p>        
+                <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+
+                    <li class="nav-item topbar-user dropdown hidden-caret">
+                        <a
+                            class="dropdown-toggle profile-pic"
+                            data-bs-toggle="dropdown"
+                            href="#"
+                            aria-expanded="false"
+                        >
+                            <div class="avatar-sm">
+                                <img
+                                    src="assets/img/profile.jpg"
+                                    alt="..."
+                                    class="avatar-img rounded-circle"
+                                />
+                            </div>
+                            <span class="profile-username">
+                      <span class="op-7">Hi,</span>
+                      <span class="fw-bold">{{ auth()->user()->name }}</span>
+                    </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user animated fadeIn">
+                            <div class="dropdown-user-scroll scrollbar-outer">
+                                <li>
+                                    <div class="user-box">
+                                        <div class="avatar-lg">
+                                            <img
+                                                src={{ asset("assets/img/profile.jpg") }}
+                                                alt="image profile"
+                                            class="avatar-img rounded"
+                                            />
+                                        </div>
+                                        <div class="u-text">
+                                            <h4>{{ auth()->user()->name }}</h4>
+                                            <p class="text-muted">{{ auth()->user()->email }}</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="p-2">
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item btn btn-danger text-center" href="{{ route('logout') }}"
+                                       onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                                        {{ __('Logout') }}
+                                    </a>
+
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                        @csrf
+                                    </form>
+                                </li>
+                            </div>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!-- End Navbar -->
+    </div>
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
     @endif
 
-    <table class="table table-striped">
-      <thead>
-        <tr>
-            <th width="40px"><b>No.</b></th>
-            <th width="180px">Nama Mahasiswa</th>
-            <th width="100px">NIM</th>
-            <th width="100px">Angkatan</th>
-            <th >Judul Skripsi</th>
-            <th width="210px">Action</th>
-        </tr>
-      </thead>
-        @foreach ($mahasiswas as $mahasiswa) 
-            <tr>
-                <td><b>{{++$i}}.<b></td>
-                <td>{{$mahasiswa->namaMahasiswa}}</td>
-                <td>{{$mahasiswa->nimMahasiswa}}</td>
-                <td align="center">{{$mahasiswa->angkatanMahasiswa}}</td>
-                <td>{{$mahasiswa->judulskripsiMahasiswa}}</td>
-                <td>
-                    <form action="{{ route('mahasiswa.destroy',$mahasiswa->id) }}" method="post">
-                    <a class="btn btn-sm btn-success" href="{{ route('mahasiswa.show', $mahasiswa->id)}}">Show</a>
-                    <a class="btn btn-sm btn-warning" href="{{ route('mahasiswa.edit', $mahasiswa->id)}}">Edit</a>
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>    
-                </td>
-            </tr>
-        @endforeach
-    </table>
-
-    {!! $mahasiswas->links() !!}
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+    <div class="container">
+        <div class="page-inner">
+            <div class="row">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <div class="card-title">Data Mahasiswa</div>
+                        <div class="d-flex gap-2">
+                            <nav
+                                class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex"
+                            >
+                                <form method="get" action="{{ route("mahasiswa.index") }}">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <button type="submit" class="btn btn-search pe-1">
+                                                <i class="fa fa-search search-icon"></i>
+                                            </button>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Search ..."
+                                            class="form-control"
+                                            name="query"
+                                            value="{{ old('query', $query ?? '') }}"
+                                        />
+                                    </div>
+                                </form>
+                            </nav>
+                            <a href="{{ route("mahasiswa.create") }}">
+                                <button class="btn btn-primary">
+                                    Tambah Mahasiswa
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col"><b>No.</b></th>
+                                <th scope="col">Nama Mahasiswa</th>
+                                <th scope="col">NIM</th>
+                                <th scope="col">Angkatan</th>
+                                <th scope="col">Judul Skripsi</th>
+                                <th scope="col">Pekerjaan</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($mahasiswas as $mahasiswa)
+                                <tr>
+                                    <td><b>{{++$i}}.<b></td>
+                                    <td>{{$mahasiswa->namaMahasiswa}}</td>
+                                    <td>{{$mahasiswa->nimMahasiswa}}</td>
+                                    <td align="center">{{$mahasiswa->angkatanMahasiswa}}</td>
+                                    <td>{{$mahasiswa->judulskripsiMahasiswa}}</td>
+                                    <td><a href="{{ route("pekerjaan.add", $mahasiswa->id) }}">
+                                            <button class="btn btn-primary">
+                                                Lihat / Tambah Pekerjaan
+                                            </button>
+                                        </a>
+                                    </td>
+                                    <td class="d-flex gap-2">
+                                        <a href="{{ route('mahasiswa.show', $mahasiswa->id) }}">
+                                            <button class="btn btn-primary">
+                                                <i class="fa fa-bookmark"></i>
+                                                Show
+                                            </button>
+                                        </a>
+                                        <a href="{{ route('mahasiswa.edit', $mahasiswa->id) }}">
+                                            <button class="btn btn-secondary">
+                                                <span class="btn-label"><i class="fa fa-plus"></i></span>
+                                                Edit
+                                            </button>
+                                        </a>
+                                        <form action="{{ route("mahasiswa.destroy", $mahasiswa->id) }}" method="post">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger">
+                                            <span class="btn-label">
+                                              <i class="fa fa-archive"></i>
+                                            </span>
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                        {{ $mahasiswas->links() }}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    </body>
-
-</html>
-
 @endsection

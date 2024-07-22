@@ -11,15 +11,20 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MahasiswaController;
+use Illuminate\Support\Facades\Route;
+
+Auth::routes();
+Route::middleware('auth')->group(function (){
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/pekerjaan/add/{id}', [MahasiswaController::class, 'addJobs'])->name('pekerjaan.add');
+    Route::resource('/pekerjaan', 'PekerjaanController');
+    Route::get('/mahasiswa/export-excel', [MahasiswaController::class, 'export_excel'])->name('mahasiswa.export.excel');
+    Route::get('/mahasiswa/dowload_pdf/{id}', [MahasiswaController::class, 'download_pdf'])->name('mahasiswa.download.pdf');
+    route::resource('mahasiswa', 'MahasiswaController');
 });
 
-Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
-route::resource('mahasiswa', 'MahasiswaController');
 
-Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
